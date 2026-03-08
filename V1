@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>SPAREN</title>
+
+<style>
+
+body{
+font-family:-apple-system;
+background:#0f172a;
+margin:0;
+color:white;
+padding-bottom:90px;
+}
+
+header{
+padding:18px;
+text-align:center;
+font-size:22px;
+font-weight:600;
+}
+
+.container{
+padding:16px;
+}
+
+.card{
+background:#1e293b;
+border-radius:20px;
+padding:18px;
+margin-bottom:14px;
+}
+
+.title{
+opacity:0.7;
+font-size:14px;
+}
+
+.big{
+font-size:34px;
+font-weight:600;
+margin-top:6px;
+}
+
+.progress{
+height:10px;
+background:#334155;
+border-radius:10px;
+overflow:hidden;
+margin-top:6px;
+}
+
+.bar{
+height:100%;
+background:#34c759;
+width:0%;
+}
+
+button{
+background:#34c759;
+border:none;
+padding:10px 14px;
+border-radius:10px;
+margin-top:10px;
+}
+
+input{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:none;
+margin-top:8px;
+}
+
+.nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#020617;
+display:flex;
+justify-content:space-around;
+padding:12px;
+}
+
+.nav button{
+background:none;
+color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>SPAREN</header>
+
+<div class="container" id="dashboard">
+
+<div class="card">
+
+<div class="title">Nog te besteden deze maand</div>
+
+<div class="big">€<span id="restMaand">517</span></div>
+
+</div>
+
+<div class="card">
+
+<div class="title">Weekbudget</div>
+
+Nog <span id="weken">4</span> weken
+
+<div class="big">€<span id="weekBudget">129</span></div>
+
+</div>
+
+<div class="card">
+
+<div class="title">Totale buffer</div>
+
+<div class="big">€<span id="buffer">0</span></div>
+
+</div>
+
+</div>
+
+<div class="container" id="sparen" style="display:none">
+
+<div class="card">
+
+<div class="title">Spaarpotten</div>
+
+Buffer €<span id="buffer2">0</span>/6000
+<div class="progress"><div id="bufferBar" class="bar"></div></div>
+
+Vakantie €<span id="vakantie">0</span>/2500
+<div class="progress"><div id="vakantieBar" class="bar"></div></div>
+
+Uitjes €<span id="uitjes">0</span>/500
+<div class="progress"><div id="uitjesBar" class="bar"></div></div>
+
+<input id="spaarBedrag" placeholder="bedrag">
+
+<button onclick="spaar('buffer')">Buffer</button>
+<button onclick="spaar('vakantie')">Vakantie</button>
+<button onclick="spaar('uitjes')">Uitjes</button>
+
+</div>
+
+</div>
+
+<div class="container" id="boodschappen" style="display:none">
+
+<div class="card">
+
+<div class="title">Boodschappen</div>
+
+Weekbudget €<span id="week">200</span>
+
+<input id="uitgave" placeholder="bedrag">
+
+<button onclick="addUitgave()">Uitgave toevoegen</button>
+
+<button onclick="resetWeek()">Nieuwe week</button>
+
+<div id="uitgaven"></div>
+
+</div>
+
+</div>
+
+<div class="nav">
+
+<button onclick="show('dashboard')">Dashboard</button>
+
+<button onclick="show('sparen')">Sparen</button>
+
+<button onclick="show('boodschappen')">Boodschappen</button>
+
+</div>
+
+<script>
+
+let maandBudget = 517
+
+let besteed = Number(localStorage.getItem("besteed") || 0)
+
+let buffer = Number(localStorage.getItem("buffer") || 0)
+
+let vakantie = Number(localStorage.getItem("vakantie") || 0)
+
+let uitjes = Number(localStorage.getItem("uitjes") || 0)
+
+let week = Number(localStorage.getItem("week") || 200)
+
+let uitgaven = JSON.parse(localStorage.getItem("uitgaven") || "[]")
+
+function show(tab){
+
+document.getElementById("dashboard").style.display="none"
+document.getElementById("sparen").style.display="none"
+document.getElementById("boodschappen").style.display="none"
+
+document.getElementById(tab).style.display="block"
+
+}
+
+function update(){
+
+document.getElementById("buffer").innerText = buffer
+document.getElementById("buffer2").innerText = buffer
+document.getElementById("vakantie").innerText = vakantie
+document.getElementById("uitjes").innerText = uitjes
+
+document.getElementById("bufferBar").style.width=(buffer/6000*100)+"%"
+document.getElementById("vakantieBar").style.width=(vakantie/2500*100)+"%"
+document.getElementById("uitjesBar").style.width=(uitjes/500*100)+"%"
+
+document.getElementById("week").innerText = week
+
+let list=""
+
+uitgaven.forEach(u=>{
+list += "€"+u+"<br>"
+})
+
+document.getElementById("uitgaven").innerHTML=list
+
+updateMaand()
+
+updateWeekBudget()
+
+}
+
+function spaar(type){
+
+let bedrag = Number(document.getElementById("spaarBedrag").value)
+
+if(type=="buffer") buffer+=bedrag
+if(type=="vakantie") vakantie+=bedrag
+if(type=="uitjes") uitjes+=bedrag
+
+localStorage.setItem("buffer",buffer)
+localStorage.setItem("vakantie",vakantie)
+localStorage.setItem("uitjes",uitjes)
+
+update()
+
+}
+
+function addUitgave(){
+
+let bedrag = Number(document.getElementById("uitgave").value)
+
+week -= bedrag
+
+besteed += bedrag
+
+uitgaven.push(bedrag)
+
+localStorage.setItem("week",week)
+localStorage.setItem("besteed",besteed)
+localStorage.setItem("uitgaven",JSON.stringify(uitgaven))
+
+update()
+
+}
+
+function resetWeek(){
+
+week = 200
+uitgaven = []
+
+localStorage.setItem("week",week)
+localStorage.setItem("uitgaven","[]")
+
+update()
+
+}
+
+function updateMaand(){
+
+let rest = maandBudget - besteed
+
+document.getElementById("restMaand").innerText = rest
+
+}
+
+function updateWeekBudget(){
+
+let rest = maandBudget - besteed
+
+let vandaag = new Date()
+
+let dag = vandaag.getDate()
+
+let weken = Math.ceil((30 - dag)/7)
+
+if(weken < 1) weken = 1
+
+let weekBudget = Math.round(rest / weken)
+
+document.getElementById("weken").innerText = weken
+
+document.getElementById("weekBudget").innerText = weekBudget
+
+}
+
+update()
+
+</script>
+
+</body>
+
+</html>
